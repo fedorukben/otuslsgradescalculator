@@ -1,0 +1,1104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Grade Calculator — Ontario Tech University</title>
+<link rel="icon" type="image/jpeg" href="assets/favicon.jpeg" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Ubuntu:ital,wght@0,300;0,400;0,500;0,700;1,400;1,500;1,700&display=swap" rel="stylesheet">
+<style>
+  /* =========================================================
+     Ontario Tech brand tokens
+     ========================================================= */
+  :root {
+    --future-blue:    #003C71;
+    --simcoe-blue:    #0077CA;
+    --tech-tangerine: #E75D2A;
+    --warm-grey:      #ACA39A;
+    --dark-grey:      #5B6770;
+    --spirit-navy:    #00283C;
+    --white:          #FFFFFF;
+
+    --bg:             #F7F8FA;
+    --surface:        #FFFFFF;
+    --ink:            #00283C;
+    --muted:          #5B6770;
+    --hairline:       #E4E7EB;
+    --hairline-soft:  #EEF1F4;
+
+    --radius-sm: 6px;
+    --radius-md: 10px;
+    --radius-lg: 16px;
+
+    --shadow-sm: 0 1px 2px rgba(0, 40, 60, 0.06);
+    --shadow-md: 0 4px 16px rgba(0, 40, 60, 0.08);
+    --shadow-lg: 0 12px 40px rgba(0, 40, 60, 0.12);
+
+    --font-sans: 'Ubuntu', Arial, sans-serif;
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  button { font-family: inherit; }
+  input  { font-family: inherit; }
+
+  /* =========================================================
+     Masthead
+     ========================================================= */
+  .masthead {
+    background: var(--white);
+    border-bottom: 1px solid var(--hairline);
+    padding: 20px 32px;
+    position: relative;
+    overflow: hidden;
+  }
+  .masthead::after {
+    /* tangerine "arrow" corner accent, per brand */
+    content: "";
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 44px;
+    height: 44px;
+    background: var(--tech-tangerine);
+    clip-path: polygon(40% 0, 100% 0, 100% 60%, 70% 60%, 70% 30%, 40% 30%);
+  }
+  .masthead-inner {
+    max-width: 1180px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+  }
+  .brand-logo {
+    display: inline-flex;
+    align-items: center;
+    text-decoration: none;
+    /* Clearspace: no other design element sits flush against the logo.
+       Padding here enforces breathing room per the brand guide. */
+    padding: 4px 12px 4px 0;
+  }
+  .brand-logo img {
+    display: block;
+    height: 95px;
+    width: auto;
+    /* minimum primary-logo digital size is 150px wide; at 44px tall
+       this gives well over that at the logo's natural aspect ratio. */
+  }
+  .product-label {
+    text-align: right;
+    padding-right: 56px; /* keep clear of the tangerine corner accent */
+  }
+  .product-label .title {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--future-blue);
+    letter-spacing: -0.01em;
+    line-height: 1;
+  }
+  .product-label .sub {
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-top: 6px;
+    font-weight: 500;
+  }
+
+  /* =========================================================
+     Page shell
+     ========================================================= */
+  .shell {
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 40px 32px 80px;
+  }
+
+  .page-title {
+    font-size: 40px;
+    font-weight: 700;
+    margin: 0 0 8px;
+    color: var(--future-blue);
+    letter-spacing: -0.02em;
+  }
+  .page-lede {
+    color: var(--muted);
+    font-size: 16px;
+    margin: 0 0 36px;
+    max-width: 640px;
+    line-height: 1.55;
+  }
+
+  /* =========================================================
+     Stat dashboard
+     ========================================================= */
+  .dashboard {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 32px;
+  }
+  .stat {
+    background: var(--surface);
+    border: 1px solid var(--hairline);
+    border-radius: var(--radius-lg);
+    padding: 22px 24px;
+    box-shadow: var(--shadow-sm);
+    transition: box-shadow 160ms ease, transform 160ms ease;
+  }
+  .stat:hover { box-shadow: var(--shadow-md); }
+  .stat-label {
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--muted);
+    font-weight: 500;
+    margin-bottom: 10px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .tooltip-trigger {
+    position: relative;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    border: 1px solid var(--hairline);
+    background: var(--white);
+    color: var(--muted);
+    font-size: 11px;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: help;
+    text-transform: none;
+    letter-spacing: normal;
+  }
+  .tooltip-trigger::after {
+    content: attr(data-tip);
+    position: absolute;
+    left: 50%;
+    bottom: calc(100% + 8px);
+    transform: translateX(-50%);
+    background: var(--spirit-navy);
+    color: var(--white);
+    font-size: 12px;
+    line-height: 1.35;
+    letter-spacing: normal;
+    text-transform: none;
+    font-weight: 400;
+    padding: 8px 10px;
+    border-radius: 6px;
+    width: 220px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 130ms ease;
+    box-shadow: var(--shadow-md);
+    z-index: 5;
+  }
+  .tooltip-trigger:hover::after,
+  .tooltip-trigger:focus-visible::after {
+    opacity: 1;
+  }
+  .stat-value {
+    font-size: 38px;
+    font-weight: 700;
+    color: var(--future-blue);
+    line-height: 1;
+    letter-spacing: -0.02em;
+  }
+  .stat-value .unit {
+    font-size: 18px;
+    font-weight: 500;
+    color: var(--muted);
+    margin-left: 2px;
+  }
+  .stat-sub {
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 6px;
+  }
+  .metric-flash {
+    animation: metricFlash 280ms ease;
+  }
+  @keyframes metricFlash {
+    0%   { transform: scale(1); }
+    45%  { transform: scale(1.05); }
+    100% { transform: scale(1); }
+  }
+  .stat.feature {
+    background: var(--future-blue);
+    border-color: var(--future-blue);
+    color: var(--white);
+  }
+  .stat.feature .stat-label { color: rgba(255,255,255,0.7); }
+  .stat.feature .stat-value { color: var(--white); }
+  .stat.feature .stat-value .unit { color: rgba(255,255,255,0.75); }
+  .stat.feature .stat-sub { color: rgba(255,255,255,0.7); }
+
+  /* Letter grade pill inside feature stat */
+  .letter-pill {
+    display: inline-block;
+    margin-top: 4px;
+    padding: 8px 12px;
+    background: var(--tech-tangerine);
+    color: var(--white);
+    border-radius: 999px;
+    font-weight: 700;
+    font-size: 24px; /* AODA-safe for tangerine text */
+    letter-spacing: 0.02em;
+  }
+
+  /* =========================================================
+     Weight tracker bar
+     ========================================================= */
+  .weight-tracker {
+    background: var(--surface);
+    border: 1px solid var(--hairline);
+    border-radius: var(--radius-md);
+    padding: 16px 20px;
+    margin-bottom: 32px;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+  }
+  .weight-tracker .label {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--ink);
+    min-width: 180px;
+  }
+  .weight-tracker .label strong { color: var(--future-blue); font-weight: 700; }
+  .weight-tracker .bar {
+    flex: 1;
+    height: 8px;
+    background: var(--hairline-soft);
+    border-radius: 999px;
+    overflow: hidden;
+    position: relative;
+  }
+  .weight-tracker .fill {
+    height: 100%;
+    background: var(--simcoe-blue);
+    border-radius: 999px;
+    transition: width 200ms ease, background 200ms ease;
+  }
+  .weight-tracker.warn .fill { background: var(--tech-tangerine); }
+  .weight-tracker.over .fill { background: #C8102E; }
+  .weight-tracker .status {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--muted);
+    min-width: 80px;
+    text-align: right;
+  }
+  .weight-tracker.warn .status { color: var(--tech-tangerine); font-weight: 700; }
+  .weight-tracker.over .status { color: #C8102E; font-weight: 700; }
+
+  /* =========================================================
+     Layout grid: assignments + sidebar
+     ========================================================= */
+  .layout {
+    display: grid;
+    grid-template-columns: 1fr 380px;
+    gap: 32px;
+    align-items: start;
+  }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--hairline);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+    overflow: hidden;
+  }
+  .card-header {
+    padding: 20px 24px 16px;
+    border-bottom: 1px solid var(--hairline-soft);
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+  }
+  .card-header h2 {
+    font-size: 22px;
+    margin: 0;
+    color: var(--future-blue);
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+  .card-header .hint {
+    font-size: 12px;
+    color: var(--muted);
+  }
+  .card-body { padding: 20px 24px 24px; }
+
+  /* =========================================================
+     Assignment rows
+     ========================================================= */
+  .assignment-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .assignment-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1.5fr) 110px 110px 40px;
+    gap: 10px;
+    align-items: center;
+    padding: 4px 0;
+    animation: fadeSlide 220ms ease;
+  }
+  @keyframes fadeSlide {
+    from { opacity: 0; transform: translateY(-4px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .field {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .field-label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--muted);
+    font-weight: 500;
+  }
+  .input-shell {
+    display: flex;
+    align-items: stretch;
+    border: 1px solid var(--hairline);
+    border-radius: var(--radius-sm);
+    background: var(--white);
+    transition: border-color 150ms ease, box-shadow 150ms ease;
+    overflow: hidden;
+  }
+  .input-shell:focus-within {
+    border-color: var(--simcoe-blue);
+    box-shadow: 0 0 0 3px rgba(0, 119, 202, 0.15);
+  }
+  .input-shell input {
+    flex: 1;
+    border: 0;
+    padding: 10px 12px;
+    font-size: 14px;
+    background: transparent;
+    color: var(--ink);
+    outline: none;
+    min-width: 0;
+    width: 100%;
+  }
+  .input-shell input[type="number"] { text-align: right; }
+  .input-shell .suffix {
+    display: flex;
+    align-items: center;
+    padding: 0 12px;
+    background: var(--hairline-soft);
+    color: var(--muted);
+    font-size: 13px;
+    font-weight: 500;
+    border-left: 1px solid var(--hairline);
+  }
+  .input-shell.invalid {
+    border-color: #C8102E;
+  }
+  .input-shell.invalid:focus-within {
+    box-shadow: 0 0 0 3px rgba(200, 16, 46, 0.15);
+  }
+
+  /* Hide header labels on subsequent rows; show compact */
+  .assignment-list .field-label { display: none; }
+  .assignment-list .assignment-row:first-child .field-label { display: block; }
+
+  /* Remove button */
+  .btn-icon {
+    width: 40px;
+    height: 40px;
+    border: 1px solid var(--hairline);
+    border-radius: var(--radius-sm);
+    background: var(--white);
+    color: var(--muted);
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 150ms ease;
+    align-self: end;
+    margin-bottom: 1px;
+  }
+  .btn-icon:hover {
+    border-color: var(--tech-tangerine);
+    color: var(--tech-tangerine);
+    background: #FFF7F3;
+  }
+  .btn-icon svg { width: 16px; height: 16px; }
+
+  .list-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 18px;
+    padding-top: 18px;
+    border-top: 1px solid var(--hairline-soft);
+  }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 18px;
+    border-radius: var(--radius-sm);
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 150ms ease;
+    border: 1px solid transparent;
+  }
+  .btn-primary {
+    background: var(--simcoe-blue);
+    color: var(--white);
+    border-color: var(--simcoe-blue);
+  }
+  .btn-primary:hover {
+    background: var(--future-blue);
+    border-color: var(--future-blue);
+  }
+  .btn-ghost {
+    background: transparent;
+    color: var(--muted);
+    border-color: var(--hairline);
+  }
+  .btn-ghost:hover {
+    color: var(--future-blue);
+    border-color: var(--future-blue);
+  }
+
+  /* =========================================================
+     Sidebar — Goal + Options
+     ========================================================= */
+  .sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .goal-result {
+    background: linear-gradient(135deg, #F4F8FB 0%, #EAF1F7 100%);
+    border: 1px solid var(--hairline);
+    border-radius: var(--radius-md);
+    padding: 18px 20px;
+    margin-top: 16px;
+  }
+  .goal-result .needed {
+    font-size: 32px;
+    font-weight: 700;
+    color: var(--future-blue);
+    line-height: 1;
+    letter-spacing: -0.02em;
+  }
+  .goal-result .needed.impossible { color: #C8102E; }
+  .goal-result .needed.easy      { color: #0A7F3F; }
+  .goal-result .context {
+    font-size: 13px;
+    color: var(--muted);
+    margin-top: 8px;
+    line-height: 1.5;
+  }
+
+  .options-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 14px;
+  }
+  .options-row label {
+    font-size: 13px;
+    color: var(--ink);
+    font-weight: 500;
+  }
+  .options-row .input-shell { width: 80px; }
+
+  /* =========================================================
+     Empty state
+     ========================================================= */
+  .empty-state {
+    text-align: center;
+    padding: 32px 20px;
+    color: var(--muted);
+    font-size: 14px;
+  }
+  .empty-state .icon {
+    font-size: 40px;
+    margin-bottom: 8px;
+    color: var(--warm-grey);
+  }
+  .empty-state .actions {
+    margin-top: 14px;
+    display: inline-flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  /* =========================================================
+     Footer
+     ========================================================= */
+  .footer {
+    margin-top: 48px;
+    padding-top: 24px;
+    border-top: 1px solid var(--hairline);
+    font-size: 12px;
+    color: var(--muted);
+    text-align: center;
+  }
+
+  /* =========================================================
+     Responsive
+     ========================================================= */
+  @media (max-width: 920px) {
+    .layout { grid-template-columns: 1fr; }
+    .dashboard { grid-template-columns: repeat(2, 1fr); }
+  }
+  @media (max-width: 560px) {
+    .shell { padding: 24px 16px 48px; }
+    .page-title { font-size: 30px; }
+    .masthead { padding: 16px 20px; }
+    .masthead-inner { gap: 12px; }
+    .brand-logo img { height: 44px; }
+    .product-label { padding-right: 40px; }
+    .product-label .title { font-size: 15px; }
+    .product-label .sub { display: none; }
+    .dashboard { grid-template-columns: 1fr 1fr; gap: 12px; }
+    .stat { padding: 16px 18px; }
+    .stat-value { font-size: 30px; }
+    .assignment-row {
+      grid-template-columns: 1fr 1fr 40px;
+      grid-template-areas:
+        "name name remove"
+        "mark weight .";
+      gap: 8px;
+    }
+    .assignment-row .field.name   { grid-area: name; }
+    .assignment-row .field.mark   { grid-area: mark; }
+    .assignment-row .field.weight { grid-area: weight; }
+    .assignment-row .btn-icon     { grid-area: remove; }
+    .assignment-list .field-label { display: block !important; }
+    .weight-tracker {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 10px;
+    }
+    .weight-tracker .status { text-align: left; }
+  }
+</style>
+</head>
+<body>
+
+<header class="masthead">
+  <div class="masthead-inner">
+    <a href="https://ontariotechu.ca" class="brand-logo" aria-label="Ontario Tech University">
+      <img src="assets/ontario-tech-logo.jpeg" alt="Ontario Tech University" />
+    </a>
+    <div class="product-label">
+      <div class="title">Grade Calculator</div>
+      <div class="sub">Teaching &amp; Learning Centre</div>
+    </div>
+  </div>
+</header>
+
+<main class="shell">
+
+  <h1 class="page-title">Track your grade.</h1>
+  <p class="page-lede">Enter each assignment's mark and weight to see your running average, your weighted grade so far, and what you need on the work still ahead to hit a target.</p>
+
+  <!-- Stat dashboard -->
+  <section class="dashboard" aria-label="Grade summary">
+    <div class="stat">
+      <div class="stat-label">Running Average <span class="tooltip-trigger" tabindex="0" aria-label="Running average help" data-tip="Average of all entered marks, without using assignment weights.">?</span></div>
+      <div class="stat-value"><span id="stat-average">0.00</span><span class="unit">%</span></div>
+      <div class="stat-sub">Unweighted mean of marks entered</div>
+    </div>
+    <div class="stat feature">
+      <div class="stat-label">Weighted Grade <span class="tooltip-trigger" tabindex="0" aria-label="Weighted grade help" data-tip="Average based on assignment weights entered so far. Higher-weight items affect this number more.">?</span></div>
+      <div class="stat-value"><span id="stat-weighted">0.00</span><span class="unit">%</span></div>
+      <div class="stat-sub">Based on weights entered so far</div>
+    </div>
+    <div class="stat">
+      <div class="stat-label">Letter Grade <span class="tooltip-trigger" tabindex="0" aria-label="Letter grade help" data-tip="Ontario Tech letter grade estimate derived from your current weighted grade.">?</span></div>
+      <div class="stat-value"><span class="letter-pill" id="stat-letter">—</span></div>
+      <div class="stat-sub" id="stat-letter-sub">Ontario Tech 4.3 scale</div>
+    </div>
+    <div class="stat">
+      <div class="stat-label">Grade Point <span class="tooltip-trigger" tabindex="0" aria-label="Grade point help" data-tip="GPA equivalent on Ontario Tech's 4.3 scale based on your weighted grade.">?</span></div>
+      <div class="stat-value"><span id="stat-gpa">0.00</span><span class="unit">/ 4.3</span></div>
+      <div class="stat-sub">Equivalent GPA</div>
+    </div>
+  </section>
+
+  <!-- Weight tracker -->
+  <div class="weight-tracker" id="weight-tracker">
+    <div class="label">Weight assigned: <strong id="weight-used">0</strong>% of 100%</div>
+    <div class="bar"><div class="fill" id="weight-fill" style="width:0%"></div></div>
+    <div class="status" id="weight-status">100% remaining</div>
+  </div>
+
+  <div class="layout">
+
+    <!-- Assignments card -->
+    <section class="card">
+      <div class="card-header">
+        <h2>Assignments</h2>
+        <span class="hint">Marks can exceed 100% for bonus work</span>
+      </div>
+      <div class="card-body">
+
+        <div class="assignment-list" id="assignment-list"></div>
+
+        <div class="list-actions">
+          <button class="btn btn-primary" id="btn-add">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="7" y1="2" x2="7" y2="12"/>
+              <line x1="2" y1="7" x2="12" y2="7"/>
+            </svg>
+            Add assignment
+          </button>
+          <button class="btn btn-ghost" id="btn-clear">Clear all</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Sidebar: Goal -->
+    <aside class="sidebar">
+      <section class="card">
+        <div class="card-header">
+          <h2>Set a goal</h2>
+        </div>
+        <div class="card-body">
+          <div class="field">
+            <div class="field-label">Target final grade</div>
+            <div class="input-shell">
+              <input type="number" id="goal-input" min="0" max="100" step="0.5" value="80" />
+              <span class="suffix">%</span>
+            </div>
+          </div>
+
+          <div class="goal-result">
+            <div class="stat-label" style="margin-bottom:6px;">You need at least</div>
+            <div class="needed" id="goal-needed">—</div>
+            <div class="context" id="goal-context">Enter some assignments to see what you need on the rest.</div>
+          </div>
+        </div>
+      </section>
+    </aside>
+
+  </div>
+
+</main>
+
+<script>
+/* =============================================================
+   State & constants
+   ============================================================= */
+
+// Ontario Tech grade scale (percentage → letter → GPA on 4.3)
+const GRADE_SCALE = [
+  { min: 90, letter: 'A+', gpa: 4.3 },
+  { min: 85, letter: 'A',  gpa: 4.0 },
+  { min: 80, letter: 'A-', gpa: 3.7 },
+  { min: 77, letter: 'B+', gpa: 3.3 },
+  { min: 73, letter: 'B',  gpa: 3.0 },
+  { min: 70, letter: 'B-', gpa: 2.7 },
+  { min: 67, letter: 'C+', gpa: 2.3 },
+  { min: 63, letter: 'C',  gpa: 2.0 },
+  { min: 60, letter: 'C-', gpa: 1.7 },
+  { min: 57, letter: 'D+', gpa: 1.3 },
+  { min: 53, letter: 'D',  gpa: 1.0 },
+  { min: 50, letter: 'D-', gpa: 0.7 },
+  { min: 0,  letter: 'F',  gpa: 0.0 },
+];
+
+let assignments = [];
+let nextId = 1;
+
+/* =============================================================
+   DOM refs
+   ============================================================= */
+const listEl        = document.getElementById('assignment-list');
+const btnAdd        = document.getElementById('btn-add');
+const btnClear      = document.getElementById('btn-clear');
+const goalInput     = document.getElementById('goal-input');
+
+const statAverage   = document.getElementById('stat-average');
+const statWeighted  = document.getElementById('stat-weighted');
+const statLetter    = document.getElementById('stat-letter');
+const statLetterSub = document.getElementById('stat-letter-sub');
+const statGpa       = document.getElementById('stat-gpa');
+
+const weightUsedEl  = document.getElementById('weight-used');
+const weightFill    = document.getElementById('weight-fill');
+const weightStatus  = document.getElementById('weight-status');
+const weightTracker = document.getElementById('weight-tracker');
+
+const goalNeededEl  = document.getElementById('goal-needed');
+const goalContextEl = document.getElementById('goal-context');
+
+/* =============================================================
+   Calculations
+   ============================================================= */
+function parseNum(v) {
+  if (v === '' || v === null || v === undefined) return null;
+  const n = Number(v);
+  return Number.isFinite(n) ? n : null;
+}
+
+function getValidGraded() {
+  // Rows where both mark and weight are present & non-negative numbers
+  return assignments.filter(a => {
+    const m = parseNum(a.mark);
+    const w = parseNum(a.weight);
+    return m !== null && w !== null && m >= 0 && w > 0;
+  });
+}
+
+function calcRunningAverage(graded) {
+  if (!graded.length) return 0;
+  const sum = graded.reduce((s, a) => s + Number(a.mark), 0);
+  return sum / graded.length;
+}
+
+function calcWeightedGrade(graded) {
+  // Weighted against the weights entered (not assuming 100 total)
+  if (!graded.length) return 0;
+  const totalW = graded.reduce((s, a) => s + Number(a.weight), 0);
+  if (totalW === 0) return 0;
+  const num = graded.reduce((s, a) => s + Number(a.mark) * Number(a.weight), 0);
+  return num / totalW;
+}
+
+function calcWeightUsed() {
+  return assignments.reduce((s, a) => {
+    const w = parseNum(a.weight);
+    return s + (w && w > 0 ? w : 0);
+  }, 0);
+}
+
+function gradeInfo(pct) {
+  if (pct === null || pct === undefined || Number.isNaN(pct)) {
+    return { letter: '—', gpa: 0 };
+  }
+  const entry = GRADE_SCALE.find(e => pct >= e.min) || GRADE_SCALE[GRADE_SCALE.length - 1];
+  return entry;
+}
+
+/**
+ * What mark do you need on the remaining weight to hit `goalPct`?
+ *
+ * Treats weight-entered-so-far as "earned" and remaining as (100 − used).
+ * Final = (earnedPoints + needed * remaining/100) / 100 ≥ goal
+ */
+function calcGoalNeeded(graded, goalPct) {
+  const used = calcWeightUsed();
+  const remaining = 100 - used;
+
+  if (remaining <= 0) {
+    return { status: 'done', remaining: 0, used };
+  }
+
+  // Points earned out of 100 so far (mark% × weight%/100)
+  const earnedPoints = graded.reduce(
+    (s, a) => s + (Number(a.mark) * Number(a.weight) / 100),
+    0
+  );
+
+  const needed = (goalPct - earnedPoints) * 100 / remaining;
+  return { status: 'ok', needed, remaining, used, earnedPoints };
+}
+
+/* =============================================================
+   Rendering
+   ============================================================= */
+function renderAssignmentRow(a, isFirst) {
+  const row = document.createElement('div');
+  row.className = 'assignment-row';
+  row.dataset.id = a.id;
+
+  row.innerHTML = `
+    <div class="field name">
+      <div class="field-label">Assignment</div>
+      <div class="input-shell">
+        <input type="text"
+               data-field="name"
+               placeholder="e.g. Midterm"
+               value="${escapeAttr(a.name ?? '')}" />
+      </div>
+    </div>
+    <div class="field mark">
+      <div class="field-label">Mark</div>
+      <div class="input-shell">
+        <input type="number"
+               data-field="mark"
+               min="0" step="0.1"
+               placeholder="0"
+               value="${a.mark ?? ''}" />
+        <span class="suffix">%</span>
+      </div>
+    </div>
+    <div class="field weight">
+      <div class="field-label">Weight</div>
+      <div class="input-shell">
+        <input type="number"
+               data-field="weight"
+               min="0" max="100" step="0.1"
+               placeholder="0"
+               value="${a.weight ?? ''}" />
+        <span class="suffix">%</span>
+      </div>
+    </div>
+    <button class="btn-icon" data-action="remove" aria-label="Remove assignment">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2">
+        <line x1="4" y1="4" x2="12" y2="12"/>
+        <line x1="12" y1="4" x2="4" y2="12"/>
+      </svg>
+    </button>
+  `;
+  return row;
+}
+
+function escapeAttr(s) {
+  return String(s)
+    .replace(/&/g, '&amp;')
+    .replace(/"/g, '&quot;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+}
+
+function renderList() {
+  listEl.innerHTML = '';
+
+  if (assignments.length === 0) {
+    const empty = document.createElement('div');
+    empty.className = 'empty-state';
+    empty.innerHTML = `
+      <div class="icon">↗</div>
+      <div>Start by adding one assignment or use a sample layout.</div>
+      <div class="actions">
+        <button class="btn btn-primary" data-action="empty-add">Add first assignment</button>
+        <button class="btn btn-ghost" data-action="empty-sample">Use sample set</button>
+      </div>
+    `;
+    listEl.appendChild(empty);
+    return;
+  }
+
+  assignments.forEach((a, i) => {
+    listEl.appendChild(renderAssignmentRow(a, i === 0));
+  });
+}
+
+function updateMetricText(el, nextText) {
+  if (el.textContent === nextText) return;
+  el.textContent = nextText;
+  el.classList.remove('metric-flash');
+  // retrigger animation when values change quickly
+  void el.offsetWidth;
+  el.classList.add('metric-flash');
+}
+
+function renderSummary() {
+  const graded = getValidGraded();
+  const avg    = calcRunningAverage(graded);
+  const wtd    = calcWeightedGrade(graded);
+  const used   = calcWeightUsed();
+
+  updateMetricText(statAverage, avg.toFixed(2));
+  updateMetricText(statWeighted, wtd.toFixed(2));
+
+  const info = gradeInfo(graded.length ? wtd : null);
+  updateMetricText(statLetter, info.letter);
+  updateMetricText(statGpa, (info.gpa || 0).toFixed(2));
+  statLetterSub.textContent = graded.length
+    ? `Based on weighted grade (${wtd.toFixed(1)}%)`
+    : 'Ontario Tech 4.3 scale';
+
+  // Weight tracker
+  const usedRounded = Math.round(used * 10) / 10;
+  weightUsedEl.textContent = usedRounded;
+  const fillPct = Math.min(100, used);
+  weightFill.style.width = fillPct + '%';
+
+  weightTracker.classList.remove('warn', 'over');
+  if (used > 100) {
+    weightTracker.classList.add('over');
+    weightStatus.textContent = `${(used - 100).toFixed(1)}% over`;
+  } else if (used >= 100) {
+    weightStatus.textContent = 'Fully allocated';
+  } else if (used > 79) {
+    weightTracker.classList.add('warn');
+    weightStatus.textContent = `${(100 - used).toFixed(1)}% remaining`;
+  } else {
+    weightStatus.textContent = `${(100 - used).toFixed(1)}% remaining`;
+  }
+
+  // Goal
+  renderGoal(graded);
+}
+
+function renderGoal(graded) {
+  const goal = parseNum(goalInput.value);
+  if (goal === null || goal < 0 || goal > 100) {
+    goalNeededEl.textContent = '—';
+    goalNeededEl.className = 'needed';
+    goalContextEl.textContent = 'Enter a target between 0 and 100%.';
+    return;
+  }
+
+  const r = calcGoalNeeded(graded, goal);
+
+  if (r.status === 'done') {
+    const wtd = calcWeightedGrade(graded);
+    goalNeededEl.textContent = wtd.toFixed(2) + '%';
+    goalNeededEl.className = 'needed';
+    if (wtd >= goal) {
+      goalContextEl.textContent = `You've already hit your target of ${goal}% with your final weighted grade of ${wtd.toFixed(2)}%. Nice.`;
+    } else {
+      goalContextEl.textContent = `All 100% of weight is already allocated. Your final grade is ${wtd.toFixed(2)}%.`;
+    }
+    return;
+  }
+
+  let cls = '';
+  let contextText;
+  if (r.needed > 100) {
+    cls = 'impossible';
+    contextText = `You'd need more than 100% on the remaining ${r.remaining.toFixed(1)}% of weight. Consider adjusting your target.`;
+  } else if (r.needed <= 0) {
+    cls = 'easy';
+    contextText = `You've already locked in your target. Any mark on the remaining ${r.remaining.toFixed(1)}% will keep you above ${goal}%.`;
+  } else {
+    contextText = `...on the remaining ${r.remaining.toFixed(1)}% of weight to finish with ${goal}%.`;
+  }
+
+  goalNeededEl.textContent = Math.max(0, r.needed).toFixed(2) + '%';
+  goalNeededEl.className = 'needed ' + cls;
+  goalContextEl.textContent = contextText;
+}
+
+function render() {
+  renderList();
+  renderSummary();
+}
+
+/* =============================================================
+   Interactions
+   ============================================================= */
+function addAssignment(prefill = {}) {
+  assignments.push({
+    id: nextId++,
+    name: prefill.name ?? '',
+    mark: prefill.mark ?? '',
+    weight: prefill.weight ?? '',
+  });
+  render();
+  // Focus the mark field of the new row
+  requestAnimationFrame(() => {
+    const rows = listEl.querySelectorAll('.assignment-row');
+    const last = rows[rows.length - 1];
+    if (last) last.querySelector('input[data-field="name"]').focus();
+  });
+}
+
+function addSampleAssignments() {
+  assignments = [];
+  nextId = 1;
+  addAssignment({ name: 'Lab 1', mark: '', weight: 10 });
+  addAssignment({ name: 'Quiz 1', mark: '', weight: 10 });
+  addAssignment({ name: 'Midterm', mark: '', weight: 30 });
+  addAssignment({ name: 'Project', mark: '', weight: 20 });
+  addAssignment({ name: 'Final Exam', mark: '', weight: 30 });
+}
+
+function removeAssignment(id) {
+  assignments = assignments.filter(a => a.id !== id);
+  render();
+}
+
+function updateField(id, field, value) {
+  const a = assignments.find(x => x.id === id);
+  if (!a) return;
+  a[field] = value;
+
+  // Inline validation for the mark/weight ranges
+  const row = listEl.querySelector(`.assignment-row[data-id="${id}"]`);
+  if (row) {
+    const shell = row.querySelector(`[data-field="${field}"]`)?.closest('.input-shell');
+    if (shell) {
+      shell.classList.remove('invalid');
+      const n = parseNum(value);
+      if (field === 'mark' && n !== null && n < 0) shell.classList.add('invalid');
+      if (field === 'weight' && n !== null && (n < 0 || n > 100)) shell.classList.add('invalid');
+    }
+  }
+
+  renderSummary();
+}
+
+// Event delegation on the list
+listEl.addEventListener('input', (e) => {
+  const input = e.target.closest('input');
+  if (!input) return;
+  const row = input.closest('.assignment-row');
+  if (!row) return;
+  const id = Number(row.dataset.id);
+  const field = input.dataset.field;
+  updateField(id, field, input.value);
+});
+
+listEl.addEventListener('click', (e) => {
+  const emptyAction = e.target.closest('[data-action="empty-add"], [data-action="empty-sample"]');
+  if (emptyAction) {
+    if (emptyAction.dataset.action === 'empty-add') addAssignment();
+    if (emptyAction.dataset.action === 'empty-sample') addSampleAssignments();
+    return;
+  }
+  const btn = e.target.closest('[data-action="remove"]');
+  if (!btn) return;
+  const row = btn.closest('.assignment-row');
+  if (!row) return;
+  removeAssignment(Number(row.dataset.id));
+});
+
+btnAdd.addEventListener('click', () => addAssignment());
+
+btnClear.addEventListener('click', () => {
+  if (assignments.length === 0) return;
+  if (confirm('Clear all assignments?')) {
+    assignments = [];
+    render();
+  }
+});
+
+goalInput.addEventListener('input', () => renderSummary());
+
+/* =============================================================
+   Boot
+   ============================================================= */
+// Seed with one empty row so the UI isn't blank on load
+addAssignment();
+</script>
+
+</body>
+</html>
