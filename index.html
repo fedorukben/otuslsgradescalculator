@@ -356,7 +356,7 @@
   }
   .assignment-row {
     display: grid;
-    grid-template-columns: minmax(0, 1.5fr) 110px 110px 40px;
+    grid-template-columns: minmax(0, 1.5fr) 130px 120px 110px 40px 40px;
     gap: 10px;
     align-items: center;
     padding: 4px 0;
@@ -446,6 +446,84 @@
     background: #FFF7F3;
   }
   .btn-icon svg { width: 16px; height: 16px; }
+  .btn-icon:focus-visible {
+    outline: 2px solid var(--simcoe-blue);
+    outline-offset: 2px;
+    border-color: var(--simcoe-blue);
+    box-shadow: 0 0 0 3px rgba(0, 119, 202, 0.15);
+  }
+  .exclude-toggle {
+    position: relative;
+    display: inline-flex;
+    align-self: end;
+    margin-bottom: 7px;
+    user-select: none;
+    cursor: pointer;
+  }
+  .exclude-toggle input {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    cursor: pointer;
+  }
+  .exclude-toggle .toggle-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 32px;
+    padding: 0 10px;
+    border-radius: 999px;
+    border: 1px solid var(--hairline);
+    background: var(--white);
+    color: var(--muted);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    transition: all 150ms ease;
+  }
+  .exclude-toggle .toggle-pill::before {
+    content: "✓";
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: #EAF4FF;
+    color: var(--simcoe-blue);
+    font-size: 11px;
+    font-weight: 700;
+  }
+  .exclude-toggle .toggle-pill .toggle-on { display: inline; }
+  .exclude-toggle .toggle-pill .toggle-off { display: none; }
+  .exclude-toggle:hover .toggle-pill {
+    border-color: var(--simcoe-blue);
+    color: var(--future-blue);
+    background: #F6FAFE;
+  }
+  .exclude-toggle input:focus-visible + .toggle-pill {
+    outline: 2px solid var(--simcoe-blue);
+    outline-offset: 2px;
+    box-shadow: 0 0 0 3px rgba(0, 119, 202, 0.15);
+  }
+  .assignment-row.excluded {
+    opacity: 0.58;
+  }
+  .assignment-row.excluded .input-shell {
+    background: #F4F6F8;
+  }
+  .assignment-row.excluded .exclude-toggle .toggle-pill {
+    border-color: #D9C6BD;
+    background: #FFF2EC;
+    color: #8B4B35;
+  }
+  .assignment-row.excluded .exclude-toggle .toggle-pill::before {
+    content: "⏸";
+    background: #FFE1D4;
+    color: #A0431B;
+  }
+  .assignment-row.excluded .exclude-toggle .toggle-pill .toggle-on { display: none; }
+  .assignment-row.excluded .exclude-toggle .toggle-pill .toggle-off { display: inline; }
 
   .list-actions {
     display: flex;
@@ -586,16 +664,18 @@
     .stat { padding: 16px 18px; }
     .stat-value { font-size: 30px; }
     .assignment-row {
-      grid-template-columns: 1fr 1fr 40px;
+      grid-template-columns: 1fr 1fr 1fr 40px 40px;
       grid-template-areas:
-        "name name remove"
-        "mark weight .";
+        "name name name duplicate remove"
+        "mark weight exclude duplicate remove";
       gap: 8px;
     }
     .assignment-row .field.name   { grid-area: name; }
     .assignment-row .field.mark   { grid-area: mark; }
     .assignment-row .field.weight { grid-area: weight; }
-    .assignment-row .btn-icon     { grid-area: remove; }
+    .assignment-row .exclude-toggle { grid-area: exclude; }
+    .assignment-row .btn-duplicate { grid-area: duplicate; }
+    .assignment-row .btn-remove     { grid-area: remove; }
     .assignment-list .field-label { display: block !important; }
     .weight-tracker {
       flex-direction: column;
@@ -603,6 +683,77 @@
       gap: 10px;
     }
     .weight-tracker .status { text-align: left; }
+  }
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    border: 0;
+    white-space: nowrap;
+  }
+  .toast {
+    position: fixed;
+    right: 20px;
+    bottom: 20px;
+    display: none;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 14px;
+    border-radius: 10px;
+    background: var(--spirit-navy);
+    color: var(--white);
+    box-shadow: var(--shadow-lg);
+    z-index: 30;
+    max-width: 420px;
+  }
+  .toast.show { display: inline-flex; }
+  .toast-text {
+    font-size: 14px;
+    line-height: 1.4;
+  }
+  .toast-undo {
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    background: transparent;
+    color: var(--white);
+    border-radius: 6px;
+    padding: 6px 10px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+  }
+  .toast-undo:hover { background: rgba(255, 255, 255, 0.1); }
+  @media print {
+    .masthead,
+    .list-actions,
+    .card-header .hint,
+    .btn-icon,
+    .toast {
+      display: none !important;
+    }
+    body {
+      background: #fff;
+      color: #000;
+    }
+    .shell {
+      max-width: none;
+      padding: 0;
+      margin: 0;
+    }
+    .layout {
+      grid-template-columns: 1fr;
+      gap: 20px;
+    }
+    .card,
+    .stat,
+    .weight-tracker {
+      box-shadow: none;
+      border-color: #bbb;
+    }
+    .assignment-row.excluded { display: none; }
   }
 </style>
 </head>
@@ -648,6 +799,7 @@
       <div class="stat-sub">Equivalent GPA</div>
     </div>
   </section>
+  <div class="sr-only" id="summary-live" aria-live="polite" aria-atomic="true"></div>
 
   <!-- Weight tracker -->
   <div class="weight-tracker" id="weight-tracker">
@@ -709,12 +861,15 @@
 
 </main>
 
+<div class="toast" id="undo-toast" role="status" aria-live="polite">
+  <span class="toast-text" id="undo-text"></span>
+  <button class="toast-undo" id="undo-button" type="button">Undo</button>
+</div>
+
 <script>
 /* =============================================================
    State & constants
    ============================================================= */
-
-// Ontario Tech grade scale (percentage → letter → GPA on 4.3)
 const GRADE_SCALE = [
   { min: 90, letter: 'A+', gpa: 4.3 },
   { min: 85, letter: 'A',  gpa: 4.0 },
@@ -733,6 +888,8 @@ const GRADE_SCALE = [
 
 let assignments = [];
 let nextId = 1;
+let undoState = null;
+let undoTimer = null;
 
 /* =============================================================
    DOM refs
@@ -741,6 +898,7 @@ const listEl        = document.getElementById('assignment-list');
 const btnAdd        = document.getElementById('btn-add');
 const btnClear      = document.getElementById('btn-clear');
 const goalInput     = document.getElementById('goal-input');
+const summaryLiveEl = document.getElementById('summary-live');
 
 const statAverage   = document.getElementById('stat-average');
 const statWeighted  = document.getElementById('stat-weighted');
@@ -756,6 +914,10 @@ const weightTracker = document.getElementById('weight-tracker');
 const goalNeededEl  = document.getElementById('goal-needed');
 const goalContextEl = document.getElementById('goal-context');
 
+const undoToastEl   = document.getElementById('undo-toast');
+const undoTextEl    = document.getElementById('undo-text');
+const undoButtonEl  = document.getElementById('undo-button');
+
 /* =============================================================
    Calculations
    ============================================================= */
@@ -765,10 +927,30 @@ function parseNum(v) {
   return Number.isFinite(n) ? n : null;
 }
 
+function parseMark(v) {
+  if (v === '' || v === null || v === undefined) return null;
+  const txt = String(v).trim();
+  if (!txt) return null;
+  const frac = txt.match(/^(-?\d+(?:\.\d+)?)\s*\/\s*(-?\d+(?:\.\d+)?)$/);
+  if (frac) {
+    const num = Number(frac[1]);
+    const den = Number(frac[2]);
+    if (!Number.isFinite(num) || !Number.isFinite(den) || den === 0) return null;
+    return (num / den) * 100;
+  }
+  return parseNum(txt);
+}
+
+function formatMark(v) {
+  const n = parseMark(v);
+  if (n === null) return String(v ?? '').trim();
+  return (Math.round(n * 100) / 100).toFixed(2).replace(/\.00$/, '');
+}
+
 function getValidGraded() {
-  // Rows where both mark and weight are present & non-negative numbers
-  return assignments.filter(a => {
-    const m = parseNum(a.mark);
+  return assignments.filter((a) => {
+    if (a.excluded) return false;
+    const m = parseMark(a.mark);
     const w = parseNum(a.weight);
     return m !== null && w !== null && m >= 0 && w > 0;
   });
@@ -776,21 +958,21 @@ function getValidGraded() {
 
 function calcRunningAverage(graded) {
   if (!graded.length) return 0;
-  const sum = graded.reduce((s, a) => s + Number(a.mark), 0);
+  const sum = graded.reduce((s, a) => s + parseMark(a.mark), 0);
   return sum / graded.length;
 }
 
 function calcWeightedGrade(graded) {
-  // Weighted against the weights entered (not assuming 100 total)
   if (!graded.length) return 0;
   const totalW = graded.reduce((s, a) => s + Number(a.weight), 0);
   if (totalW === 0) return 0;
-  const num = graded.reduce((s, a) => s + Number(a.mark) * Number(a.weight), 0);
+  const num = graded.reduce((s, a) => s + parseMark(a.mark) * Number(a.weight), 0);
   return num / totalW;
 }
 
 function calcWeightUsed() {
   return assignments.reduce((s, a) => {
+    if (a.excluded) return s;
     const w = parseNum(a.weight);
     return s + (w && w > 0 ? w : 0);
   }, 0);
@@ -798,32 +980,31 @@ function calcWeightUsed() {
 
 function gradeInfo(pct) {
   if (pct === null || pct === undefined || Number.isNaN(pct)) {
-    return { letter: '—', gpa: 0 };
+    return { min: 0, letter: '—', gpa: 0 };
   }
-  const entry = GRADE_SCALE.find(e => pct >= e.min) || GRADE_SCALE[GRADE_SCALE.length - 1];
-  return entry;
+  return GRADE_SCALE.find((e) => pct >= e.min) || GRADE_SCALE[GRADE_SCALE.length - 1];
 }
 
-/**
- * What mark do you need on the remaining weight to hit `goalPct`?
- *
- * Treats weight-entered-so-far as "earned" and remaining as (100 − used).
- * Final = (earnedPoints + needed * remaining/100) / 100 ≥ goal
- */
+function letterThresholdText(pct, info) {
+  if (pct === null) return 'Ontario Tech 4.3 scale';
+  const idx = GRADE_SCALE.findIndex((e) => e.letter === info.letter);
+  if (idx === -1) return 'Ontario Tech 4.3 scale';
+  const up = idx > 0 ? GRADE_SCALE[idx - 1] : null;
+  const down = idx < GRADE_SCALE.length - 1 ? GRADE_SCALE[idx + 1] : null;
+  const parts = [];
+  if (up) parts.push(`${Math.max(0, up.min - pct).toFixed(1)}% from ${up.letter}`);
+  if (down) parts.push(`${Math.max(0, pct - info.min).toFixed(1)}% above ${down.letter}`);
+  return parts.length ? `${info.letter} — ${parts.join(' • ')}` : `${info.letter} band`;
+}
+
 function calcGoalNeeded(graded, goalPct) {
   const used = calcWeightUsed();
   const remaining = 100 - used;
-
-  if (remaining <= 0) {
-    return { status: 'done', remaining: 0, used };
-  }
-
-  // Points earned out of 100 so far (mark% × weight%/100)
+  if (remaining <= 0) return { status: 'done', remaining: 0, used };
   const earnedPoints = graded.reduce(
-    (s, a) => s + (Number(a.mark) * Number(a.weight) / 100),
+    (s, a) => s + (parseMark(a.mark) * Number(a.weight) / 100),
     0
   );
-
   const needed = (goalPct - earnedPoints) * 100 / remaining;
   return { status: 'ok', needed, remaining, used, earnedPoints };
 }
@@ -831,44 +1012,45 @@ function calcGoalNeeded(graded, goalPct) {
 /* =============================================================
    Rendering
    ============================================================= */
-function renderAssignmentRow(a, isFirst) {
+function renderAssignmentRow(a) {
   const row = document.createElement('div');
-  row.className = 'assignment-row';
+  row.className = `assignment-row${a.excluded ? ' excluded' : ''}`;
   row.dataset.id = a.id;
-
   row.innerHTML = `
     <div class="field name">
       <div class="field-label">Assignment</div>
       <div class="input-shell">
-        <input type="text"
-               data-field="name"
-               placeholder="e.g. Midterm"
-               value="${escapeAttr(a.name ?? '')}" />
+        <input type="text" data-field="name" placeholder="e.g. Midterm" value="${escapeAttr(a.name ?? '')}" />
       </div>
     </div>
     <div class="field mark">
       <div class="field-label">Mark</div>
       <div class="input-shell">
-        <input type="number"
-               data-field="mark"
-               min="0" step="0.1"
-               placeholder="0"
-               value="${a.mark ?? ''}" />
+        <input type="text" data-field="mark" inputmode="decimal" placeholder="0 or 17/20" value="${escapeAttr(a.mark ?? '')}" />
         <span class="suffix">%</span>
       </div>
     </div>
     <div class="field weight">
       <div class="field-label">Weight</div>
       <div class="input-shell">
-        <input type="number"
-               data-field="weight"
-               min="0" max="100" step="0.1"
-               placeholder="0"
-               value="${a.weight ?? ''}" />
+        <input type="number" data-field="weight" min="0" max="100" step="0.1" placeholder="0" value="${a.weight ?? ''}" />
         <span class="suffix">%</span>
       </div>
     </div>
-    <button class="btn-icon" data-action="remove" aria-label="Remove assignment">
+    <label class="exclude-toggle">
+      <input type="checkbox" data-field="excluded" ${a.excluded ? 'checked' : ''} />
+      <span class="toggle-pill" aria-hidden="true">
+        <span class="toggle-on">Included</span>
+        <span class="toggle-off">Excluded</span>
+      </span>
+    </label>
+    <button class="btn-icon btn-duplicate" data-action="duplicate" aria-label="Duplicate assignment">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8">
+        <rect x="5" y="3" width="8" height="9" rx="1"></rect>
+        <rect x="2" y="6" width="8" height="9" rx="1"></rect>
+      </svg>
+    </button>
+    <button class="btn-icon btn-remove" data-action="remove" aria-label="Remove assignment">
       <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2">
         <line x1="4" y1="4" x2="12" y2="12"/>
         <line x1="12" y1="4" x2="4" y2="12"/>
@@ -888,7 +1070,6 @@ function escapeAttr(s) {
 
 function renderList() {
   listEl.innerHTML = '';
-
   if (assignments.length === 0) {
     const empty = document.createElement('div');
     empty.className = 'empty-state';
@@ -903,26 +1084,22 @@ function renderList() {
     listEl.appendChild(empty);
     return;
   }
-
-  assignments.forEach((a, i) => {
-    listEl.appendChild(renderAssignmentRow(a, i === 0));
-  });
+  assignments.forEach((a) => listEl.appendChild(renderAssignmentRow(a)));
 }
 
 function updateMetricText(el, nextText) {
   if (el.textContent === nextText) return;
   el.textContent = nextText;
   el.classList.remove('metric-flash');
-  // retrigger animation when values change quickly
   void el.offsetWidth;
   el.classList.add('metric-flash');
 }
 
 function renderSummary() {
   const graded = getValidGraded();
-  const avg    = calcRunningAverage(graded);
-  const wtd    = calcWeightedGrade(graded);
-  const used   = calcWeightUsed();
+  const avg = calcRunningAverage(graded);
+  const wtd = calcWeightedGrade(graded);
+  const used = calcWeightUsed();
 
   updateMetricText(statAverage, avg.toFixed(2));
   updateMetricText(statWeighted, wtd.toFixed(2));
@@ -931,10 +1108,12 @@ function renderSummary() {
   updateMetricText(statLetter, info.letter);
   updateMetricText(statGpa, (info.gpa || 0).toFixed(2));
   statLetterSub.textContent = graded.length
-    ? `Based on weighted grade (${wtd.toFixed(1)}%)`
+    ? letterThresholdText(wtd, info)
     : 'Ontario Tech 4.3 scale';
+  summaryLiveEl.textContent = graded.length
+    ? `Weighted grade ${wtd.toFixed(2)} percent, letter ${info.letter}, GPA ${info.gpa.toFixed(2)}.`
+    : 'No graded assignments yet.';
 
-  // Weight tracker
   const usedRounded = Math.round(used * 10) / 10;
   weightUsedEl.textContent = usedRounded;
   const fillPct = Math.min(100, used);
@@ -952,8 +1131,6 @@ function renderSummary() {
   } else {
     weightStatus.textContent = `${(100 - used).toFixed(1)}% remaining`;
   }
-
-  // Goal
   renderGoal(graded);
 }
 
@@ -967,33 +1144,27 @@ function renderGoal(graded) {
   }
 
   const r = calcGoalNeeded(graded, goal);
-
   if (r.status === 'done') {
     const wtd = calcWeightedGrade(graded);
-    goalNeededEl.textContent = wtd.toFixed(2) + '%';
+    goalNeededEl.textContent = `${wtd.toFixed(2)}%`;
     goalNeededEl.className = 'needed';
-    if (wtd >= goal) {
-      goalContextEl.textContent = `You've already hit your target of ${goal}% with your final weighted grade of ${wtd.toFixed(2)}%. Nice.`;
-    } else {
-      goalContextEl.textContent = `All 100% of weight is already allocated. Your final grade is ${wtd.toFixed(2)}%.`;
-    }
+    goalContextEl.textContent = wtd >= goal
+      ? `You've already hit your target of ${goal}% with your final weighted grade of ${wtd.toFixed(2)}%. Nice.`
+      : `All 100% of weight is already allocated. Your final grade is ${wtd.toFixed(2)}%.`;
     return;
   }
 
   let cls = '';
-  let contextText;
+  let contextText = `...on the remaining ${r.remaining.toFixed(1)}% of weight to finish with ${goal}%.`;
   if (r.needed > 100) {
     cls = 'impossible';
     contextText = `You'd need more than 100% on the remaining ${r.remaining.toFixed(1)}% of weight. Consider adjusting your target.`;
   } else if (r.needed <= 0) {
     cls = 'easy';
     contextText = `You've already locked in your target. Any mark on the remaining ${r.remaining.toFixed(1)}% will keep you above ${goal}%.`;
-  } else {
-    contextText = `...on the remaining ${r.remaining.toFixed(1)}% of weight to finish with ${goal}%.`;
   }
-
-  goalNeededEl.textContent = Math.max(0, r.needed).toFixed(2) + '%';
-  goalNeededEl.className = 'needed ' + cls;
+  goalNeededEl.textContent = `${Math.max(0, r.needed).toFixed(2)}%`;
+  goalNeededEl.className = `needed ${cls}`.trim();
   goalContextEl.textContent = contextText;
 }
 
@@ -1003,60 +1174,102 @@ function render() {
 }
 
 /* =============================================================
+   Undo helpers
+   ============================================================= */
+function hideUndo() {
+  if (undoTimer) clearTimeout(undoTimer);
+  undoTimer = null;
+  undoState = null;
+  undoToastEl.classList.remove('show');
+}
+
+function showUndo(message, undoFn) {
+  if (undoTimer) clearTimeout(undoTimer);
+  undoState = { undoFn };
+  undoTextEl.textContent = message;
+  undoToastEl.classList.add('show');
+  undoTimer = setTimeout(() => hideUndo(), 5000);
+}
+
+/* =============================================================
    Interactions
    ============================================================= */
-function addAssignment(prefill = {}) {
+function addAssignment(prefill = {}, focusField = 'name') {
   assignments.push({
     id: nextId++,
     name: prefill.name ?? '',
     mark: prefill.mark ?? '',
     weight: prefill.weight ?? '',
+    excluded: Boolean(prefill.excluded),
   });
   render();
-  // Focus the mark field of the new row
   requestAnimationFrame(() => {
     const rows = listEl.querySelectorAll('.assignment-row');
     const last = rows[rows.length - 1];
-    if (last) last.querySelector('input[data-field="name"]').focus();
+    if (last) {
+      const field = last.querySelector(`input[data-field="${focusField}"]`) || last.querySelector('input[data-field="name"]');
+      if (field) field.focus();
+    }
   });
 }
 
 function addSampleAssignments() {
   assignments = [];
   nextId = 1;
-  addAssignment({ name: 'Lab 1', mark: '', weight: 10 });
-  addAssignment({ name: 'Quiz 1', mark: '', weight: 10 });
-  addAssignment({ name: 'Midterm', mark: '', weight: 30 });
-  addAssignment({ name: 'Project', mark: '', weight: 20 });
-  addAssignment({ name: 'Final Exam', mark: '', weight: 30 });
+  addAssignment({ name: 'Lab 1', mark: '', weight: 10 }, 'name');
+  addAssignment({ name: 'Quiz 1', mark: '', weight: 10 }, 'name');
+  addAssignment({ name: 'Midterm', mark: '', weight: 30 }, 'name');
+  addAssignment({ name: 'Project', mark: '', weight: 20 }, 'name');
+  addAssignment({ name: 'Final Exam', mark: '', weight: 30 }, 'name');
+}
+
+function duplicateAssignment(id) {
+  const src = assignments.find((a) => a.id === id);
+  if (!src) return;
+  addAssignment({
+    name: src.name ? `${src.name} (copy)` : '',
+    mark: src.mark,
+    weight: src.weight,
+    excluded: src.excluded,
+  }, 'name');
 }
 
 function removeAssignment(id) {
-  assignments = assignments.filter(a => a.id !== id);
+  const removed = assignments.find((a) => a.id === id);
+  if (!removed) return;
+  assignments = assignments.filter((a) => a.id !== id);
   render();
+  showUndo(`Removed "${removed.name || 'Untitled assignment'}".`, () => {
+    assignments.push(removed);
+    assignments.sort((a, b) => a.id - b.id);
+    render();
+  });
 }
 
 function updateField(id, field, value) {
-  const a = assignments.find(x => x.id === id);
+  const a = assignments.find((x) => x.id === id);
   if (!a) return;
   a[field] = value;
 
-  // Inline validation for the mark/weight ranges
   const row = listEl.querySelector(`.assignment-row[data-id="${id}"]`);
   if (row) {
+    row.classList.toggle('excluded', Boolean(a.excluded));
     const shell = row.querySelector(`[data-field="${field}"]`)?.closest('.input-shell');
     if (shell) {
       shell.classList.remove('invalid');
-      const n = parseNum(value);
-      if (field === 'mark' && n !== null && n < 0) shell.classList.add('invalid');
-      if (field === 'weight' && n !== null && (n < 0 || n > 100)) shell.classList.add('invalid');
+      if (field === 'mark') {
+        const mark = parseMark(value);
+        if (mark !== null && mark < 0) shell.classList.add('invalid');
+      }
+      if (field === 'weight') {
+        const w = parseNum(value);
+        if (w !== null && (w < 0 || w > 100)) shell.classList.add('invalid');
+      }
     }
   }
-
   renderSummary();
 }
 
-// Event delegation on the list
 listEl.addEventListener('input', (e) => {
   const input = e.target.closest('input');
   if (!input) return;
@@ -1064,7 +1277,37 @@ listEl.addEventListener('input', (e) => {
   if (!row) return;
   const id = Number(row.dataset.id);
   const field = input.dataset.field;
+  if (field === 'excluded') {
+    updateField(id, field, input.checked);
+    return;
+  }
   updateField(id, field, input.value);
+});
+
+listEl.addEventListener('blur', (e) => {
+  const input = e.target.closest('input[data-field="mark"]');
+  if (!input) return;
+  const row = input.closest('.assignment-row');
+  if (!row) return;
+  const id = Number(row.dataset.id);
+  const a = assignments.find((x) => x.id === id);
+  if (!a) return;
+  a.mark = formatMark(a.mark);
+  input.value = a.mark;
+  renderSummary();
+}, true);
+
+listEl.addEventListener('keydown', (e) => {
+  const input = e.target.closest('input');
+  if (!input || e.key !== 'Enter') return;
+  const row = input.closest('.assignment-row');
+  if (!row) return;
+  const rows = Array.from(listEl.querySelectorAll('.assignment-row'));
+  const isLastRow = rows[rows.length - 1] === row;
+  if (input.dataset.field === 'weight' && isLastRow) {
+    e.preventDefault();
+    addAssignment({}, 'name');
+  }
 });
 
 listEl.addEventListener('click', (e) => {
@@ -1074,29 +1317,38 @@ listEl.addEventListener('click', (e) => {
     if (emptyAction.dataset.action === 'empty-sample') addSampleAssignments();
     return;
   }
-  const btn = e.target.closest('[data-action="remove"]');
-  if (!btn) return;
-  const row = btn.closest('.assignment-row');
+  const row = e.target.closest('.assignment-row');
   if (!row) return;
-  removeAssignment(Number(row.dataset.id));
+  const id = Number(row.dataset.id);
+  if (e.target.closest('[data-action="remove"]')) removeAssignment(id);
+  if (e.target.closest('[data-action="duplicate"]')) duplicateAssignment(id);
 });
 
 btnAdd.addEventListener('click', () => addAssignment());
 
 btnClear.addEventListener('click', () => {
   if (assignments.length === 0) return;
-  if (confirm('Clear all assignments?')) {
-    assignments = [];
+  const snapshot = assignments.map((a) => ({ ...a }));
+  assignments = [];
+  render();
+  showUndo('Cleared all assignments.', () => {
+    assignments = snapshot.map((a) => ({ ...a }));
     render();
-  }
+  });
 });
 
 goalInput.addEventListener('input', () => renderSummary());
 
+undoButtonEl.addEventListener('click', () => {
+  if (!undoState) return;
+  const action = undoState.undoFn;
+  hideUndo();
+  action();
+});
+
 /* =============================================================
    Boot
    ============================================================= */
-// Seed with one empty row so the UI isn't blank on load
 addAssignment();
 </script>
 
